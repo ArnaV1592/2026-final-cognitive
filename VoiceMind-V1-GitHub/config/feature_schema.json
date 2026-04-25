@@ -1,0 +1,45 @@
+{
+  "schema_version": "1.0.0",
+  "description": "VoiceMind V1 \u2014 Pitt binary (Control vs Dementia)",
+  "acoustic_features": [
+    "speech_rate_syl_per_sec",
+    "pause_ratio",
+    "pitch_variance_hz",
+    "mfcc_mean_0",
+    "mfcc_mean_1",
+    "mfcc_mean_2",
+    "mfcc_mean_3",
+    "mfcc_mean_4",
+    "mfcc_mean_5",
+    "mfcc_mean_6",
+    "mfcc_mean_7",
+    "mfcc_mean_8",
+    "mfcc_mean_9",
+    "mfcc_mean_10",
+    "mfcc_mean_11",
+    "mfcc_mean_12",
+    "mfcc_mean_13",
+    "mfcc_mean_14",
+    "mfcc_mean_15",
+    "mfcc_mean_16",
+    "mfcc_mean_17",
+    "mfcc_mean_18",
+    "mfcc_mean_19"
+  ],
+  "linguistic_features": [
+    "semantic_coherence",
+    "lexical_entropy",
+    "type_token_ratio",
+    "pronoun_inconsistency",
+    "syntax_tree_depth"
+  ],
+  "backbone_dims": {
+    "wavlm_embedding": 1024,
+    "xlmr_embedding": 768
+  },
+  "total_derived_features": 28,
+  "label_map": {
+    "0": "Control",
+    "1": "Dementia"
+  }
+}

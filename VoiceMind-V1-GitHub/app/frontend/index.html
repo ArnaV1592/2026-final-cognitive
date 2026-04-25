@@ -1,0 +1,879 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>VoiceMind — Cognitive Screening</title>
+<style>
+:root{--bg:#f0f4f8;--card:#fff;--bd:#dde3ec;--tx:#1a202c;--mu:#64748b;
+  --ac:#4f46e5;--acl:#eef2ff;--gr:#059669;--grl:#d1fae5;
+  --rd:#dc2626;--rdl:#fee2e2;--am:#d97706;--aml:#fef3c7;--r:12px;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  background:var(--bg);color:var(--tx);min-height:100vh;}
+.app{max-width:700px;margin:0 auto;padding:20px 14px;}
+.hdr{text-align:center;margin-bottom:20px;}
+.logo{font-size:25px;font-weight:700;color:var(--ac);}
+.tag{font-size:12px;color:var(--mu);margin-top:3px;}
+.card{background:var(--card);border:1px solid var(--bd);
+  border-radius:var(--r);padding:20px;margin-bottom:14px;
+  box-shadow:0 1px 4px rgba(0,0,0,.06);}
+.scr{display:none;}.scr.on{display:block;}
+/* cfg */
+.cfg{background:#1e1e2e;color:#cdd6f4;padding:10px 14px;border-radius:10px;
+  margin-bottom:14px;font-size:12px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.cfg input{background:#313244;border:1px solid #45475a;color:#cdd6f4;
+  padding:5px 9px;border-radius:6px;font-size:12px;flex:1;min-width:160px;outline:none;}
+.cfg button{background:#45475a;border:none;color:#cdd6f4;padding:5px 12px;
+  border-radius:6px;cursor:pointer;font-size:11px;}
+.dot{width:8px;height:8px;border-radius:50%;background:#a6e3a1;flex-shrink:0;}
+.dot.red{background:#f38ba8;}
+/* steps */
+.steps{display:flex;margin-bottom:20px;}
+.sp{flex:1;text-align:center;position:relative;}
+.sp-d{width:28px;height:28px;border-radius:50%;border:2px solid var(--bd);
+  background:var(--card);display:flex;align-items:center;justify-content:center;
+  font-size:11px;font-weight:600;color:var(--mu);margin:0 auto 4px;
+  position:relative;z-index:1;transition:all .3s;}
+.sp-l{position:absolute;top:13px;left:50%;right:-50%;height:2px;
+  background:var(--bd);z-index:0;}
+.sp:last-child .sp-l{display:none;}
+.sp.active .sp-d{background:var(--ac);border-color:var(--ac);color:#fff;}
+.sp.done .sp-d{background:var(--gr);border-color:var(--gr);color:#fff;}
+.sp.done .sp-l{background:var(--gr);}
+.sp-t{font-size:9px;color:var(--mu);}
+.sp.active .sp-t{color:var(--ac);font-weight:600;}
+/* lang bar */
+.lbar{display:flex;gap:8px;margin-bottom:14px;}
+.lbtn{flex:1;padding:8px;border:2px solid var(--bd);border-radius:8px;
+  background:transparent;cursor:pointer;font-size:13px;font-weight:500;color:var(--mu);}
+.lbtn.on{border-color:var(--ac);background:var(--acl);color:var(--ac);}
+/* form */
+.fr{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;}
+.fg{display:flex;flex-direction:column;gap:3px;}
+.fg label{font-size:12px;font-weight:500;color:var(--mu);}
+.fg input,.fg select{border:1px solid var(--bd);border-radius:7px;
+  padding:9px 11px;font-size:14px;outline:none;background:var(--bg);}
+.fg input:focus,.fg select:focus{border-color:var(--ac);}
+/* memory banner */
+.mbanner{background:var(--acl);border:2px solid var(--ac);
+  border-radius:10px;padding:14px;margin-bottom:14px;text-align:center;}
+.mlbl{font-size:12px;color:var(--ac);font-weight:600;margin-bottom:8px;}
+.mwords{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;}
+.mword{background:var(--ac);color:#fff;padding:6px 18px;border-radius:20px;
+  font-size:17px;font-weight:700;}
+/* question */
+.qdomain{font-size:11px;color:var(--ac);font-weight:600;margin-bottom:4px;}
+.qbadge{background:var(--acl);color:var(--ac);font-size:11px;font-weight:600;
+  padding:3px 10px;border-radius:20px;display:inline-block;margin-bottom:10px;}
+.qtext{font-size:17px;font-weight:600;line-height:1.45;margin-bottom:8px;}
+.qhint{font-size:12px;color:var(--mu);line-height:1.55;
+  background:var(--bg);padding:10px 12px;border-radius:8px;margin-bottom:10px;}
+/* Cookie Theft picture */
+.pic-wrap{border:2px solid var(--bd);border-radius:10px;overflow:hidden;
+  margin:10px 0;background:#f9f4ed;}
+.pic-wrap svg{width:100%;display:block;}
+/* timed task */
+.tbox{background:var(--aml);border:2px solid var(--am);
+  border-radius:10px;padding:12px 16px;margin:10px 0;
+  display:flex;align-items:center;gap:12px;}
+.tval{font-size:28px;font-weight:700;color:var(--am);min-width:44px;
+  font-variant-numeric:tabular-nums;}
+.tbar{flex:1;height:6px;background:var(--bd);border-radius:3px;overflow:hidden;}
+.tfill{height:100%;background:var(--am);border-radius:3px;transition:width .5s linear;}
+/* recorder */
+.rarea{display:flex;flex-direction:column;align-items:center;gap:12px;padding:14px 0;}
+.rtimer{font-size:30px;font-weight:700;font-variant-numeric:tabular-nums;}
+.wf{width:100%;height:34px;display:flex;align-items:center;justify-content:center;gap:3px;}
+.wb{width:4px;background:var(--ac);border-radius:2px;height:6px;transition:height .12s;}
+.rbtn{width:70px;height:70px;border-radius:50%;border:none;cursor:pointer;
+  font-size:28px;transition:all .2s;}
+.rbtn.idle{background:var(--acl);color:var(--ac);}
+.rbtn.idle:hover{background:var(--ac);color:#fff;transform:scale(1.06);}
+.rbtn.rec{background:var(--rd);color:#fff;animation:pu 1.1s infinite;}
+.rbtn.done{background:var(--grl);color:var(--gr);}
+@keyframes pu{0%,100%{transform:scale(1)}50%{transform:scale(1.07)}}
+.rst{font-size:12px;color:var(--mu);text-align:center;}
+.aprev{background:var(--bg);border:1px solid var(--bd);
+  border-radius:8px;padding:10px 14px;display:flex;align-items:center;gap:10px;}
+.aprev audio{flex:1;height:30px;}
+.rtbtn{background:none;border:1px solid var(--bd);border-radius:7px;
+  padding:5px 11px;font-size:12px;cursor:pointer;color:var(--mu);}
+.rtbtn:hover{border-color:var(--ac);color:var(--ac);}
+/* buttons */
+.btn{padding:11px 22px;border-radius:8px;font-size:14px;font-weight:600;
+  border:none;cursor:pointer;transition:all .2s;display:inline-flex;align-items:center;gap:7px;}
+.bp{background:var(--ac);color:#fff;}
+.bp:hover{opacity:.9;transform:translateY(-1px);}
+.bp:disabled{opacity:.35;cursor:not-allowed;transform:none;}
+.bo{background:transparent;color:var(--ac);border:1px solid var(--ac);}
+.brow{display:flex;gap:10px;justify-content:flex-end;margin-top:16px;}
+/* processing */
+.proc{text-align:center;padding:32px;}
+.spin{width:44px;height:44px;border:3px solid var(--bd);
+  border-top-color:var(--ac);border-radius:50%;
+  animation:sp .8s linear infinite;margin:0 auto 14px;}
+@keyframes sp{to{transform:rotate(360deg)}}
+/* report */
+.rbanner{border-radius:var(--r);padding:22px;text-align:center;margin-bottom:14px;}
+.rbanner.nrm{background:var(--grl);border:2px solid var(--gr);}
+.rbanner.mild{background:var(--aml);border:2px solid var(--am);}
+.rbanner.mod,.rbanner.sev{background:var(--rdl);border:2px solid var(--rd);}
+.rv{font-size:22px;font-weight:700;margin-bottom:4px;}
+.rscore{font-size:52px;font-weight:800;margin:6px 0;}
+.rsub{font-size:12px;color:var(--mu);}
+.dgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0;}
+.dc{background:var(--bg);border:1px solid var(--bd);
+  border-radius:10px;padding:12px 14px;}
+.dl{font-size:11px;font-weight:600;color:var(--mu);margin-bottom:3px;}
+.ds{font-size:20px;font-weight:700;}
+.dbar{height:6px;background:var(--bd);border-radius:3px;margin-top:6px;overflow:hidden;}
+.df{height:100%;border-radius:3px;transition:width 1.2s ease;}
+.df.g{background:var(--gr);}
+.df.a{background:var(--am);}
+.df.r{background:var(--rd);}
+.ilist .ii{display:flex;gap:8px;padding:7px 0;border-bottom:1px solid var(--bd);font-size:13px;}
+.ilist .ii:last-child{border:none;}
+.tgrid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:8px;}
+.ti{text-align:center;}
+.tv{font-size:17px;font-weight:700;}
+.tl{font-size:10px;color:var(--mu);}
+.txitem{background:var(--bg);border:1px solid var(--bd);
+  border-radius:8px;padding:10px 12px;margin-bottom:8px;font-size:12px;line-height:1.5;}
+.txhdr{font-size:11px;font-weight:600;color:var(--mu);margin-bottom:4px;}
+.disc{background:var(--aml);border:1px solid var(--am);
+  border-radius:8px;padding:11px 14px;font-size:12px;color:#92400e;margin-top:14px;}
+</style>
+</head>
+<body>
+<div class="app">
+<div class="hdr">
+  <div class="logo">🧠 VoiceMind</div>
+  <div class="tag">AI-assisted cognitive screening · Pilot v1.5 · For clinical use only</div>
+</div>
+
+<div class="cfg">
+  <div class="dot" id="dot"></div>
+  <span>API:</span>
+  <input id="api" value="http://localhost:8000">
+  <button onclick="chk()">Check</button>
+  <span id="hs" style="font-size:11px;color:#a6adc8;white-space:nowrap"></span>
+</div>
+
+<div class="steps" id="sb">
+  <div class="sp active" id="s0"><div class="sp-l"></div><div class="sp-d">1</div><div class="sp-t">Patient</div></div>
+  <div class="sp" id="s1"><div class="sp-l"></div><div class="sp-d">2</div><div class="sp-t">Picture</div></div>
+  <div class="sp" id="s2"><div class="sp-l"></div><div class="sp-d">3</div><div class="sp-t">Fluency</div></div>
+  <div class="sp" id="s3"><div class="sp-l"></div><div class="sp-d">4</div><div class="sp-t">Attention</div></div>
+  <div class="sp" id="s4"><div class="sp-l"></div><div class="sp-d">5</div><div class="sp-t">Recall</div></div>
+  <div class="sp" id="s5"><div class="sp-d">6</div><div class="sp-t">Report</div></div>
+</div>
+
+<!-- ── Screen 0: Patient info ── -->
+<div class="scr on" id="s_pt">
+<div class="card">
+  <h2 style="font-size:17px;margin-bottom:14px">Patient information</h2>
+  <div style="margin-bottom:12px">
+    <div style="font-size:12px;font-weight:500;color:var(--mu);margin-bottom:6px">Language / भाषा</div>
+    <div class="lbar">
+      <button class="lbtn on" onclick="setL('en',this)">English</button>
+      <button class="lbtn" onclick="setL('hi',this)">हिन्दी</button>
+      <button class="lbtn" onclick="setL('hi-en',this)">Hinglish</button>
+    </div>
+  </div>
+  <div class="fr">
+    <div class="fg"><label>Patient ID</label><input id="pid" placeholder="P001"></div>
+    <div class="fg"><label>Age / आयु</label><input id="age" type="number" placeholder="68" min="40" max="100"></div>
+  </div>
+  <div class="fr">
+    <div class="fg"><label>Clinician</label><input id="clin" placeholder="Dr. Name"></div>
+    <div class="fg"><label>Education</label>
+      <select id="edu">
+        <option value="low">Below 5th / प्राथमिक से कम</option>
+        <option value="mid" selected>5th–12th / माध्यमिक</option>
+        <option value="high">Graduate+ / स्नातक</option>
+      </select>
+    </div>
+  </div>
+  <div class="brow"><button class="btn bp" onclick="startS()">Begin screening →</button></div>
+</div>
+</div>
+
+<!-- ── Screen 1: Q1 Picture description ── -->
+<div class="scr" id="s_q0">
+<div class="card">
+  <div class="mbanner">
+    <div class="mlbl" id="mlbl">🧠 Remember these 3 words — you will be asked again later</div>
+    <div class="mwords" id="mw"></div>
+  </div>
+  <div class="qdomain" id="d0"></div>
+  <div class="qbadge">Question 1 of 4</div>
+  <div class="qtext" id="qt0"></div>
+
+  <!-- Cookie Theft Picture (embedded SVG) -->
+  <div class="pic-wrap">
+    <svg viewBox="0 0 560 320" xmlns="http://www.w3.org/2000/svg">
+      <!-- Sky / Wall -->
+      <rect width="560" height="320" fill="#f5f0e6"/>
+      <!-- Floor -->
+      <rect y="248" width="560" height="72" fill="#c8a97a"/>
+      <line x1="0" y1="248" x2="560" y2="248" stroke="#b09060" stroke-width="1.5"/>
+      <!-- Window back wall -->
+      <rect x="195" y="18" width="170" height="115" fill="#acd8e8" stroke="#7a6040" stroke-width="3" rx="2"/>
+      <line x1="280" y1="18" x2="280" y2="133" stroke="#7a6040" stroke-width="2"/>
+      <line x1="195" y1="76" x2="365" y2="76" stroke="#7a6040" stroke-width="2"/>
+      <!-- Trees outside -->
+      <ellipse cx="230" cy="52" rx="24" ry="22" fill="#2d7a2d" opacity=".75"/>
+      <ellipse cx="318" cy="48" rx="20" ry="20" fill="#2d7a2d" opacity=".75"/>
+      <rect x="227" y="74" width="6" height="18" fill="#7a5020"/>
+      <rect x="315" y="68" width="6" height="20" fill="#7a5020"/>
+      <!-- Curtains -->
+      <path d="M167,10 Q188,68 175,138" stroke="#b87030" stroke-width="14" fill="none" stroke-linecap="round" opacity=".6"/>
+      <path d="M393,10 Q372,68 385,138" stroke="#b87030" stroke-width="14" fill="none" stroke-linecap="round" opacity=".6"/>
+
+      <!-- LEFT COUNTER & CABINET -->
+      <rect x="0" y="165" width="240" height="14" fill="#8b6535" rx="1"/>
+      <rect x="0" y="179" width="240" height="69" fill="#a07545"/>
+      <rect x="10" y="183" width="100" height="61" fill="#c09060" rx="2" stroke="#8b6535" stroke-width="1"/>
+      <rect x="120" y="183" width="110" height="61" fill="#c09060" rx="2" stroke="#8b6535" stroke-width="1"/>
+      <circle cx="60" cy="213" r="5" fill="#7a5520"/>
+      <circle cx="175" cy="213" r="5" fill="#7a5520"/>
+
+      <!-- COOKIE JAR on counter -->
+      <ellipse cx="185" cy="155" rx="26" ry="32" fill="#c8783a" stroke="#8b4820" stroke-width="2"/>
+      <ellipse cx="185" cy="126" rx="21" ry="10" fill="#e09050" stroke="#8b4820" stroke-width="1.5"/>
+      <!-- Lid tilted/off -->
+      <ellipse cx="192" cy="120" rx="23" ry="9" fill="#7a4020" stroke="#5a3015" stroke-width="1.5"
+               transform="rotate(-18,192,120)"/>
+      <!-- Cookies in jar -->
+      <circle cx="176" cy="146" r="9" fill="#d4a070" stroke="#a07040" stroke-width="1"/>
+      <circle cx="194" cy="152" r="8" fill="#d4a070" stroke="#a07040" stroke-width="1"/>
+      <line x1="169" y1="143" x2="183" y2="149" stroke="#8b5020" stroke-width="1.5" stroke-linecap="round"/>
+
+      <!-- STOOL (tipping) — rotated slightly -->
+      <g transform="translate(70,175) rotate(12,35,50)">
+        <rect x="0" y="0" width="80" height="9" fill="#8b6535" rx="2"/>
+        <rect x="6" y="9" width="10" height="60" fill="#8b6535" rx="1" transform="rotate(-4,11,39)"/>
+        <rect x="64" y="9" width="10" height="60" fill="#8b6535" rx="1" transform="rotate(6,69,39)"/>
+        <rect x="20" y="9" width="10" height="55" fill="#8b6535" rx="1"/>
+        <rect x="50" y="9" width="10" height="55" fill="#8b6535" rx="1"/>
+      </g>
+
+      <!-- BOY on stool -->
+      <!-- Legs -->
+      <line x1="96" y1="218" x2="88" y2="248" stroke="#1a3a7a" stroke-width="10" stroke-linecap="round"/>
+      <line x1="108" y1="218" x2="116" y2="248" stroke="#1a3a7a" stroke-width="10" stroke-linecap="round"/>
+      <!-- Body -->
+      <rect x="82" y="165" width="38" height="56" fill="#3a5ac8" rx="6"/>
+      <!-- Right arm reaching to jar -->
+      <line x1="120" y1="180" x2="165" y2="158" stroke="#f5c0a8" stroke-width="9" stroke-linecap="round"/>
+      <!-- Hand at jar -->
+      <circle cx="168" cy="156" r="7" fill="#f5c0a8"/>
+      <!-- Left arm down/holding cookie -->
+      <line x1="82" y1="180" x2="58" y2="200" stroke="#f5c0a8" stroke-width="9" stroke-linecap="round"/>
+      <circle cx="50" cy="204" r="8" fill="#d4a070" stroke="#a07040" stroke-width="1.5"/>
+      <!-- Head -->
+      <circle cx="101" cy="154" r="20" fill="#f5c0a8"/>
+      <!-- Hair -->
+      <path d="M81,148 Q101,132 121,148" fill="#3a2010" stroke="none"/>
+      <ellipse cx="101" cy="141" rx="20" ry="8" fill="#3a2010"/>
+      <!-- Eye -->
+      <circle cx="95" cy="153" r="2.5" fill="#2a1a08"/>
+      <circle cx="108" cy="153" r="2.5" fill="#2a1a08"/>
+      <!-- Smile -->
+      <path d="M94,161 Q101,167 108,161" stroke="#c07060" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+
+      <!-- GIRL beside stool -->
+      <!-- Legs -->
+      <line x1="44" y1="238" x2="38" y2="268" stroke="#d04060" stroke-width="8" stroke-linecap="round"/>
+      <line x1="56" y1="238" x2="62" y2="268" stroke="#d04060" stroke-width="8" stroke-linecap="round"/>
+      <!-- Dress/body -->
+      <path d="M38,205 Q50,235 62,205 L58,195 L42,195 Z" fill="#e060a0"/>
+      <!-- Arm up reaching -->
+      <line x1="60" y1="200" x2="78" y2="185" stroke="#f5c0a8" stroke-width="7" stroke-linecap="round"/>
+      <!-- Other arm — finger to lips (shush) -->
+      <line x1="40" y1="200" x2="48" y2="184" stroke="#f5c0a8" stroke-width="7" stroke-linecap="round"/>
+      <!-- Head -->
+      <circle cx="50" cy="183" r="17" fill="#f5c0a8"/>
+      <!-- Long hair -->
+      <path d="M33,178 Q50,165 67,178 Q70,205 50,212 Q30,205 33,178" fill="#6a3010" opacity=".85"/>
+      <!-- Eyes -->
+      <circle cx="45" cy="182" r="2" fill="#2a1a08"/>
+      <circle cx="55" cy="182" r="2" fill="#2a1a08"/>
+      <!-- Finger to lips -->
+      <circle cx="48" cy="183" r="2.5" fill="#f5c0a8"/>
+
+      <!-- RIGHT COUNTER & SINK -->
+      <rect x="330" y="165" width="230" height="14" fill="#8b6535" rx="1"/>
+      <rect x="330" y="179" width="230" height="69" fill="#a07545"/>
+      <!-- Sink -->
+      <rect x="365" y="170" width="100" height="55" fill="#b8b8c0" rx="5" stroke="#888898" stroke-width="2"/>
+      <!-- Drain -->
+      <ellipse cx="415" cy="215" rx="12" ry="5" fill="#909098"/>
+      <!-- Faucet post -->
+      <rect x="409" y="148" width="12" height="24" fill="#909098" rx="3"/>
+      <!-- Faucet handle -->
+      <rect x="398" y="142" width="34" height="8" fill="#909098" rx="4"/>
+      <!-- Water stream from faucet -->
+      <path d="M415,172 Q412,195 410,220" stroke="#6ab0e0" stroke-width="4" fill="none" stroke-linecap="round" opacity=".8"/>
+      <!-- WATER OVERFLOWING -->
+      <path d="M365,225 Q350,240 340,270" stroke="#6ab0e0" stroke-width="5" fill="none" stroke-linecap="round" opacity=".7"/>
+      <path d="M465,225 Q480,245 488,270" stroke="#6ab0e0" stroke-width="4" fill="none" stroke-linecap="round" opacity=".6"/>
+      <!-- Puddle on floor -->
+      <ellipse cx="415" cy="278" rx="55" ry="12" fill="#8ac8e8" opacity=".45"/>
+      <!-- Water drops -->
+      <circle cx="345" cy="260" r="4" fill="#6ab0e0" opacity=".7"/>
+      <circle cx="490" cy="265" r="3.5" fill="#6ab0e0" opacity=".7"/>
+      <circle cx="360" cy="280" r="3" fill="#6ab0e0" opacity=".6"/>
+      <!-- Dishes / plates on counter -->
+      <ellipse cx="345" cy="162" rx="18" ry="5" fill="#ddd" stroke="#bbb" stroke-width="1"/>
+      <ellipse cx="345" cy="157" rx="15" ry="4" fill="#eee" stroke="#bbb" stroke-width="1"/>
+      <rect x="495" y="153" width="24" height="12" fill="#c8c0b8" rx="2" stroke="#aaa" stroke-width="1"/>
+
+      <!-- MOTHER at sink -->
+      <!-- Legs -->
+      <line x1="428" y1="248" x2="422" y2="282" stroke="#703898" stroke-width="9" stroke-linecap="round"/>
+      <line x1="446" y1="248" x2="452" y2="282" stroke="#703898" stroke-width="9" stroke-linecap="round"/>
+      <!-- Body -->
+      <rect x="415" y="175" width="50" height="74" fill="#9a3ab8" rx="6"/>
+      <!-- Apron -->
+      <rect x="420" y="192" width="40" height="55" fill="rgba(255,255,255,0.4)" rx="3"/>
+      <!-- Arms at sink -->
+      <line x1="415" y1="195" x2="385" y2="215" stroke="#f5c0a8" stroke-width="9" stroke-linecap="round"/>
+      <line x1="465" y1="195" x2="478" y2="215" stroke="#f5c0a8" stroke-width="9" stroke-linecap="round"/>
+      <!-- Dish in hand -->
+      <ellipse cx="382" cy="218" rx="16" ry="5" fill="#ddd" stroke="#bbb" stroke-width="1.5"/>
+      <!-- Head (facing away-ish) -->
+      <circle cx="440" cy="162" r="20" fill="#f5c0a8"/>
+      <!-- Hair -->
+      <path d="M420,155 Q440,142 460,155 Q462,170 440,175 Q418,170 420,155" fill="#5a3018"/>
+      <!-- Eye (side view) -->
+      <circle cx="456" cy="162" r="2" fill="#2a1a08"/>
+
+      <!-- SMALL LABELS -->
+      <text x="101" y="310" text-anchor="middle" font-size="9" fill="#666">Boy (stealing cookies)</text>
+      <text x="50" y="310" text-anchor="middle" font-size="9" fill="#666">Girl</text>
+      <text x="440" y="310" text-anchor="middle" font-size="9" fill="#666">Mother · water overflow</text>
+    </svg>
+  </div>
+
+  <div class="qhint" id="qh0"></div>
+  <div class="rarea">
+    <div class="rtimer" id="rt0">0:00</div>
+    <div class="wf" id="wf0"></div>
+    <button class="rbtn idle" id="rb0" onclick="tog(0)">🎤</button>
+    <div class="rst" id="rs0">Tap to start recording</div>
+  </div>
+  <div id="ap0" style="display:none">
+    <div class="aprev"><audio id="au0" controls></audio>
+    <button class="rtbtn" onclick="ret(0)">↺ Retake</button></div>
+  </div>
+  <div class="brow">
+    <button class="btn bo" onclick="goQ(-1)">← Back</button>
+    <button class="btn bp" id="nb0" onclick="goQ(1)" disabled>Next →</button>
+  </div>
+</div>
+</div>
+
+<!-- ── Screen 2: Q2 Verbal fluency ── -->
+<div class="scr" id="s_q1">
+<div class="card">
+  <div class="qdomain" id="d1"></div>
+  <div class="qbadge">Question 2 of 4</div>
+  <div class="qtext" id="qt1"></div>
+  <div class="tbox" id="tbox" style="display:none">
+    <div class="tval" id="tv">60</div>
+    <div class="tbar"><div class="tfill" id="tf" style="width:100%"></div></div>
+    <span style="font-size:12px;font-weight:600;color:var(--am)">sec</span>
+  </div>
+  <div class="qhint" id="qh1"></div>
+  <div class="rarea">
+    <div class="rtimer" id="rt1">0:00</div>
+    <div class="wf" id="wf1"></div>
+    <button class="rbtn idle" id="rb1" onclick="tog(1)">🎤</button>
+    <div class="rst" id="rs1">Tap to start recording</div>
+  </div>
+  <div id="ap1" style="display:none">
+    <div class="aprev"><audio id="au1" controls></audio>
+    <button class="rtbtn" onclick="ret(1)">↺ Retake</button></div>
+  </div>
+  <div class="brow">
+    <button class="btn bo" onclick="goQ(0)">← Back</button>
+    <button class="btn bp" id="nb1" onclick="goQ(2)" disabled>Next →</button>
+  </div>
+</div>
+</div>
+
+<!-- ── Screen 3: Q3 Attention ── -->
+<div class="scr" id="s_q2">
+<div class="card">
+  <div class="qdomain" id="d2"></div>
+  <div class="qbadge">Question 3 of 4</div>
+  <div class="qtext" id="qt2"></div>
+  <div class="qhint" id="qh2"></div>
+  <div class="rarea">
+    <div class="rtimer" id="rt2">0:00</div>
+    <div class="wf" id="wf2"></div>
+    <button class="rbtn idle" id="rb2" onclick="tog(2)">🎤</button>
+    <div class="rst" id="rs2">Tap to start recording</div>
+  </div>
+  <div id="ap2" style="display:none">
+    <div class="aprev"><audio id="au2" controls></audio>
+    <button class="rtbtn" onclick="ret(2)">↺ Retake</button></div>
+  </div>
+  <div class="brow">
+    <button class="btn bo" onclick="goQ(1)">← Back</button>
+    <button class="btn bp" id="nb2" onclick="goQ(3)" disabled>Next →</button>
+  </div>
+</div>
+</div>
+
+<!-- ── Screen 4: Q4 Delayed recall ── -->
+<div class="scr" id="s_q3">
+<div class="card">
+  <div class="qdomain" id="d3"></div>
+  <div class="qbadge">Question 4 of 4 — Memory recall</div>
+  <div class="qtext" id="qt3"></div>
+  <div class="qhint" id="qh3"></div>
+  <div class="rarea">
+    <div class="rtimer" id="rt3">0:00</div>
+    <div class="wf" id="wf3"></div>
+    <button class="rbtn idle" id="rb3" onclick="tog(3)">🎤</button>
+    <div class="rst" id="rs3">Tap to start recording</div>
+  </div>
+  <div id="ap3" style="display:none">
+    <div class="aprev"><audio id="au3" controls></audio>
+    <button class="rtbtn" onclick="ret(3)">↺ Retake</button></div>
+  </div>
+  <div class="brow">
+    <button class="btn bo" onclick="goQ(2)">← Back</button>
+    <button class="btn bp" id="nb3" onclick="subAll()" disabled>Analyse →</button>
+  </div>
+</div>
+</div>
+
+<!-- ── Screen 5: Processing ── -->
+<div class="scr" id="s_proc">
+<div class="card proc">
+  <div class="spin"></div>
+  <div style="font-size:16px;font-weight:600;margin-bottom:6px" id="pt">Analysing…</div>
+  <div style="font-size:13px;color:var(--mu)" id="ps">Running acoustic + linguistic analysis</div>
+</div>
+</div>
+
+<!-- ── Screen 6: Report ── -->
+<div class="scr" id="s_rep">
+<div id="rb_banner" class="rbanner nrm">
+  <div class="rv" id="rverdict"></div>
+  <div class="rscore" id="rscore"></div>
+  <div class="rsub">out of 30 &nbsp;·&nbsp; MoCA-aligned screening score</div>
+</div>
+<div class="card">
+  <div style="font-weight:600;font-size:15px;margin-bottom:12px">Domain-wise scores</div>
+  <div class="dgrid" id="dg"></div>
+</div>
+<div class="card">
+  <div style="font-weight:600;font-size:15px;margin-bottom:8px">Clinical interpretation</div>
+  <div class="ilist" id="il"></div>
+</div>
+<div class="card">
+  <div style="font-weight:600;font-size:15px;margin-bottom:8px">Voice biomarkers</div>
+  <div style="font-size:11px;color:var(--mu);margin-bottom:8px">Signals invisible to standard screening tools</div>
+  <div class="tgrid" id="tg"></div>
+</div>
+<div class="card">
+  <div style="font-weight:600;font-size:15px;margin-bottom:8px">Transcripts</div>
+  <div id="txl"></div>
+</div>
+<div class="disc">
+  ⚠️ <strong>Clinical pilot use only.</strong>
+  This AI screening tool is NOT a medical diagnosis.
+  All results must be reviewed by a qualified clinician.
+  Cognitive screening requires medical history, clinical assessment, and validated neuropsychological evaluation.
+</div>
+<div class="brow" style="margin-top:14px">
+  <button class="btn bo" onclick="window.print()">🖨 Print</button>
+  <button class="btn bp" onclick="newS()">+ New screening</button>
+</div>
+</div>
+
+</div><!-- /app -->
+
+<script>
+// ── Clinical question bank ─────────────────────────────────────────────────
+const MW = {
+  en:    ["Apple",  "Table",  "Penny"],
+  hi:    ["सेब",    "मेज",    "पैसा"],
+  "hi-en":["Apple", "मेज",    "Penny"],
+};
+
+const QS = {
+  en:[
+    {dom:"📸 Language — Picture description", qnum:0, timed:false,
+     text:"Please describe everything you see happening in this kitchen picture.",
+     hint:"Let the patient speak freely for 60–90 seconds. Do not interrupt or prompt."},
+    {dom:"🦁 Executive — Verbal fluency", qnum:1, timed:60,
+     text:"Name as many ANIMALS as you can think of. You have 60 seconds. Begin when ready.",
+     hint:"Start when patient begins. Do not help. Normal: 15+ animals. Concern: fewer than 10."},
+    {dom:"🔢 Attention — Serial subtraction", qnum:2, timed:false,
+     text:"Starting from 100, keep subtracting 7. So: 100, 93, 86… Continue until I tell you to stop.",
+     hint:"Allow 5 subtractions. Errors and long pauses are clinically significant."},
+    {dom:"🧠 Memory — Delayed recall (most important)", qnum:4, timed:false,
+     text:"Earlier I asked you to remember 3 words. What were those words?",
+     hint:"This is the strongest Alzheimer's signal. Do NOT give hints. Record how long it takes."},
+  ],
+  hi:[
+    {dom:"📸 भाषा — चित्र वर्णन", qnum:0, timed:false,
+     text:"इस रसोई के चित्र में जो कुछ हो रहा है, कृपया सब कुछ बताएं।",
+     hint:"रोगी को 60-90 सेकंड बिना रोके बोलने दें।"},
+    {dom:"🦁 कार्यकारी — मौखिक प्रवाह", qnum:1, timed:60,
+     text:"60 सेकंड में जितने जानवरों के नाम याद आएं, बोलते जाएं।",
+     hint:"जब रोगी शुरू करे तब गिनना शुरू करें। सामान्य: 15+ जानवर।"},
+    {dom:"🔢 ध्यान — उल्टी गिनती", qnum:2, timed:false,
+     text:"100 से शुरू करके 7 घटाते जाएं: 100, 93, 86… जब तक मैं रोकूं।",
+     hint:"5 चरण करने दें। गलतियां और लंबे रुकाव महत्वपूर्ण संकेत हैं।"},
+    {dom:"🧠 स्मृति — विलंबित याद (सबसे महत्वपूर्ण)", qnum:4, timed:false,
+     text:"पहले मैंने आपको 3 शब्द याद करने को कहा था। वो कौन से शब्द थे?",
+     hint:"यह अल्जाइमर का सबसे मजबूत संकेत है। कोई संकेत न दें।"},
+  ],
+};
+QS["hi-en"] = QS.hi;
+
+// ── State ──────────────────────────────────────────────────────────────────
+let lang="en", blobs=[null,null,null,null], results=[],
+    pt={}, sid="", mrec=null, rTmr={}, wTmr={};
+
+const qs  = () => QS[lang] || QS.en;
+const mw  = () => MW[lang] || MW.en;
+const api = () => document.getElementById("api").value.replace(/\/$/,"");
+
+// ── Health check ───────────────────────────────────────────────────────────
+async function chk(){
+  const hs=document.getElementById("hs"), dt=document.getElementById("dot");
+  try{
+    hs.textContent="Checking…";
+    const r=await fetch(api()+"/health",{signal:AbortSignal.timeout(5000)});
+    const d=await r.json();
+    hs.textContent=`✓ ${d.model_version||"ok"} · ${d.asr_modes||""}`;
+    dt.classList.remove("red");
+  }catch(e){hs.textContent="✗ Cannot connect";dt.classList.add("red");}
+}
+
+// ── Language ───────────────────────────────────────────────────────────────
+function setL(l,b){
+  lang=l;
+  document.querySelectorAll(".lbtn").forEach(x=>x.classList.remove("on"));
+  b.classList.add("on");
+}
+
+// ── Screens ────────────────────────────────────────────────────────────────
+function show(id){
+  document.querySelectorAll(".scr").forEach(s=>s.classList.remove("on"));
+  document.getElementById(id).classList.add("on");
+}
+function updS(n){
+  for(let i=0;i<=5;i++){
+    const e=document.getElementById("s"+i);
+    e.classList.remove("active","done");
+    if(i<n)e.classList.add("done");
+    else if(i===n)e.classList.add("active");
+  }
+}
+
+function startS(){
+  const p=document.getElementById("pid").value.trim();
+  if(!p){alert("Please enter a Patient ID.");return;}
+  pt={id:p,age:document.getElementById("age").value,lang,
+    clinician:document.getElementById("clin").value,
+    education:document.getElementById("edu").value,ts:new Date().toISOString()};
+  sid=`${p}_${Date.now()}`;
+  blobs=[null,null,null,null]; results=[];
+  loadQ(0); show("s_q0"); updS(1);
+}
+
+function loadQ(qi){
+  const q=qs()[qi];
+  // Memory words (always show on Q0)
+  if(qi===0){
+    document.getElementById("mw").innerHTML=
+      mw().map(w=>`<span class="mword">${w}</span>`).join("");
+    document.getElementById("mlbl").textContent=
+      lang==="hi"||lang==="hi-en"
+        ? "🧠 ये 3 शब्द याद करें — बाद में पूछे जाएंगे"
+        : "🧠 Remember these 3 words — you will be asked again later";
+  }
+  document.getElementById(`d${qi}`).textContent=q.dom;
+  document.getElementById(`qt${qi}`).textContent=q.text;
+  document.getElementById(`qh${qi}`).textContent="💡 "+q.hint;
+  // Timed task display
+  const tb=document.getElementById("tbox");
+  if(tb) tb.style.display=q.timed?"flex":"none";
+  // Reset recorder
+  document.getElementById(`rt${qi}`).textContent="0:00";
+  document.getElementById(`rs${qi}`).textContent=
+    lang==="hi"||lang==="hi-en"?"रिकॉर्ड करने के लिए टैप करें":"Tap to start recording";
+  document.getElementById(`rb${qi}`).className="rbtn idle";
+  document.getElementById(`rb${qi}`).textContent="🎤";
+  document.getElementById(`ap${qi}`).style.display="none";
+  document.getElementById(`nb${qi}`).disabled=true;
+  initWf("wf"+qi);
+  if(blobs[qi]) restR(qi);
+}
+
+function goQ(qi){
+  if(qi<0){show("s_pt");updS(0);return;}
+  loadQ(qi);
+  show(["s_q0","s_q1","s_q2","s_q3"][qi]);
+  updS(qi+1);
+}
+
+// ── Waveform ───────────────────────────────────────────────────────────────
+function initWf(id){
+  const el=document.getElementById(id);if(!el)return;
+  el.innerHTML="";
+  for(let i=0;i<22;i++){const b=document.createElement("div");b.className="wb";el.appendChild(b);}
+}
+
+// ── Recording ──────────────────────────────────────────────────────────────
+async function tog(qi){
+  if(mrec&&mrec.state==="recording"){stopR(qi);}
+  else{await startR(qi);}
+}
+
+async function startR(qi){
+  try{
+    const st=await navigator.mediaDevices.getUserMedia({audio:true});
+    const ch=[]; mrec=new MediaRecorder(st,{mimeType:"audio/webm"});
+    mrec.ondataavailable=e=>{if(e.data.size>0)ch.push(e.data);};
+    mrec.onstop=()=>{
+      blobs[qi]=new Blob(ch,{type:"audio/webm"});
+      document.getElementById(`au${qi}`).src=URL.createObjectURL(blobs[qi]);
+      const aEl=document.getElementById(`au${qi}`);
+      aEl.load();
+      aEl.setAttribute("type","audio/webm");
+      document.getElementById(`ap${qi}`).style.display="block";
+      document.getElementById(`nb${qi}`).disabled=false;
+      document.getElementById(`rb${qi}`).className="rbtn done";
+      document.getElementById(`rb${qi}`).textContent="✓";
+      document.getElementById(`rs${qi}`).textContent=
+        lang==="hi"||lang==="hi-en"?"रिकॉर्डिंग सहेजी गई।":"Recording saved.";
+      st.getTracks().forEach(t=>t.stop());
+      clearInterval(rTmr[qi]); clearInterval(wTmr[qi]);
+      if(qs()[qi]&&qs()[qi].timed) clearInterval(window._ft);
+    };
+    mrec.start(100);
+    let s=0; rTmr[qi]=setInterval(()=>{
+      s++;
+      document.getElementById(`rt${qi}`).textContent=
+        `${Math.floor(s/60)}:${String(s%60).padStart(2,"0")}`;
+    },1000);
+    document.getElementById(`rb${qi}`).className="rbtn rec";
+    document.getElementById(`rb${qi}`).textContent="⏹";
+    document.getElementById(`rs${qi}`).textContent=
+      lang==="hi"||lang==="hi-en"?"रिकॉर्ड हो रहा है… रोकने के लिए टैप करें":"Recording… tap to stop";
+    document.getElementById(`ap${qi}`).style.display="none";
+    // Fluency countdown
+    if(qs()[qi]&&qs()[qi].timed){
+      const tot=qs()[qi].timed; let rem=tot;
+      document.getElementById("tbox").style.display="flex";
+      window._ft=setInterval(()=>{
+        rem--; document.getElementById("tv").textContent=rem;
+        document.getElementById("tf").style.width=(rem/tot*100)+"%";
+        if(rem<=0){clearInterval(window._ft); stopR(qi);}
+      },1000);
+    }
+    wTmr[qi]=setInterval(()=>{
+      document.querySelectorAll(`#wf${qi} .wb`).forEach(b=>{
+        b.style.height=(6+Math.random()*26)+"px";
+      });
+    },120);
+  }catch(e){
+    alert(lang==="hi"?"माइक्रोफोन की अनुमति दें।":"Please allow microphone access in browser settings.");
+  }
+}
+function stopR(qi){if(mrec&&mrec.state!=="inactive")mrec.stop();}
+function ret(qi){
+  blobs[qi]=null;
+  document.getElementById(`ap${qi}`).style.display="none";
+  document.getElementById(`nb${qi}`).disabled=true;
+  document.getElementById(`rb${qi}`).className="rbtn idle";
+  document.getElementById(`rb${qi}`).textContent="🎤";
+  document.getElementById(`rt${qi}`).textContent="0:00";
+  initWf("wf"+qi);
+}
+function restR(qi){
+  document.getElementById(`au${qi}`).src=URL.createObjectURL(blobs[qi]);
+      const aEl=document.getElementById(`au${qi}`);
+      aEl.load();
+      aEl.setAttribute("type","audio/webm");
+  document.getElementById(`ap${qi}`).style.display="block";
+  document.getElementById(`nb${qi}`).disabled=false;
+  document.getElementById(`rb${qi}`).className="rbtn done";
+  document.getElementById(`rb${qi}`).textContent="✓";
+}
+
+// ── Submit ─────────────────────────────────────────────────────────────────
+async function subAll(){
+  show("s_proc"); updS(5); results=[];
+  const qlist=qs(); const words=mw();
+
+  for(let qi=0;qi<4;qi++){
+    document.getElementById("pt").textContent=`Analysing response ${qi+1} of 4…`;
+    document.getElementById("ps").textContent=qlist[qi].text.substring(0,55)+"…";
+    try{
+      if(!blobs[qi]) throw new Error("No recording for question "+(qi+1));
+      const fd=new FormData();
+      fd.append("file", blobs[qi], `q${qi+1}_${pt.id}.webm`);
+      fd.append("patient_id",   pt.id);
+      fd.append("question_num", String(qlist[qi].qnum));
+      fd.append("clinician",    pt.clinician||"");
+      fd.append("session_id",   sid);
+      fd.append("recall_words", JSON.stringify(words));
+      fd.append("language",     lang);
+      const r=await fetch(api()+"/screen",{
+        method:"POST", body:fd, signal:AbortSignal.timeout(180000)
+      });
+      if(!r.ok){
+        const err=await r.text();
+        throw new Error(`Server error ${r.status}: ${err.substring(0,100)}`);
+      }
+      const d=await r.json();
+      results.push({qi, q:qlist[qi], result:d, error:null});
+    }catch(e){
+      results.push({qi, q:qlist[qi], result:null, error:e.message});
+    }
+  }
+
+  const valid=results.filter(r=>r.result&&!r.error);
+  if(!valid.length){
+    const errs=results.map(r=>r.error).filter(Boolean).join(" | ");
+    alert("❌ Server unreachable or error.\n\n"+errs+
+          "\n\nCheck:\n1. API URL is correct\n2. RunPod server is running\n3. Port 8000 is exposed");
+    show("s_q3"); return;
+  }
+  buildRep(valid);
+}
+
+// ── Report ─────────────────────────────────────────────────────────────────
+function buildRep(valid){
+  show("s_rep"); updS(5);
+  const avgPD=valid.reduce((s,r)=>s+r.result.P_Dementia,0)/valid.length;
+  const ds=aggDS(valid);
+  const tot=Math.round(ds.total);
+
+  // Banner
+  const bn=document.getElementById("rb_banner");
+  const vd=document.getElementById("rverdict");
+  document.getElementById("rscore").textContent=tot+"/30";
+  if(tot>=26){bn.className="rbanner nrm"; vd.textContent="✓ "+T("Normal cognition","सामान्य स्मृति");}
+  else if(tot>=19){bn.className="rbanner mild"; vd.textContent="⚠ "+T("Mild cognitive concern — monitor","हल्की संज्ञानात्मक चिंता");}
+  else if(tot>=11){bn.className="rbanner mod"; vd.textContent="⚠ "+T("Moderate impairment — refer for evaluation","मध्यम कमी — रेफर करें");}
+  else{bn.className="rbanner sev"; vd.textContent="✗ "+T("Significant impairment — urgent referral","गंभीर कमी — तुरंत रेफर");}
+
+  // Domains
+  const dg=document.getElementById("dg"); dg.innerHTML="";
+  [{n:T("Memory","स्मृति"),s:ds.mem,m:8},
+   {n:T("Fluency","प्रवाह"),s:ds.flu,m:7},
+   {n:T("Attention","ध्यान"),s:ds.att,m:5},
+   {n:T("Language","भाषा"),s:ds.lang,m:5},
+   {n:T("Orientation","दिशा-ज्ञान"),s:ds.ori,m:5}
+  ].forEach(d=>{
+    const p=(d.s/d.m)*100;
+    const c=p>=70?"g":p>=40?"a":"r";
+    dg.innerHTML+=`<div class="dc"><div class="dl">${d.n}</div>
+      <div class="ds">${d.s.toFixed(1)}<span style="font-size:12px;color:var(--mu)"> /${d.m}</span></div>
+      <div class="dbar"><div class="df ${c}" style="width:${p}%"></div></div></div>`;
+  });
+
+  // Interpretations
+  const il=document.getElementById("il"); il.innerHTML="";
+  genInterp(ds,avgPD).forEach(i=>{
+    il.innerHTML+=`<div class="ii"><span>${i.icon}</span>
+      <div><strong>${i.dom}</strong>: ${i.txt}</div></div>`;
+  });
+
+  // Temporal biomarkers
+  const tg=document.getElementById("tg");
+  const tm=avgTmp(valid);
+  tg.innerHTML=`
+    <div class="ti"><div class="tv" style="color:${tm.lat>4?"var(--rd)":"var(--gr)"}">${tm.lat.toFixed(1)}s</div>
+      <div class="tl">${T("Response latency","जवाब देरी")}</div></div>
+    <div class="ti"><div class="tv" style="color:${tm.dis>10?"var(--rd)":"var(--gr)"}">${tm.dis.toFixed(0)}</div>
+      <div class="tl">${T("Disfluency/100w","अटकन दर")}</div></div>
+    <div class="ti"><div class="tv" style="color:${tm.wpm<60?"var(--rd)":"var(--gr)"}">${tm.wpm.toFixed(0)}</div>
+      <div class="tl">${T("Words/min","शब्द/मिनट")}</div></div>`;
+
+  // Transcripts
+  const txl=document.getElementById("txl"); txl.innerHTML="";
+  valid.forEach(r=>{
+    txl.innerHTML+=`<div class="txitem">
+      <div class="txhdr">${r.q.dom} · ${r.result.prediction} (${(r.result.confidence*100).toFixed(0)}%) · ${r.result.asr_provider}</div>
+      ${r.result.transcript||"(no transcript)"}</div>`;
+  });
+}
+
+function T(en,hi){return(lang==="hi"||lang==="hi-en")?hi:en;}
+
+function aggDS(valid){
+  const d={mem:0,flu:0,att:0,lang:0,ori:5};
+  valid.forEach(r=>{
+    const ds=r.result.domain_scores?.domains;
+    if(ds){
+      d.mem  +=ds.memory?.score||0;
+      d.flu  +=ds.fluency?.score||0;
+      d.att  +=ds.attention?.score||0;
+      d.lang +=ds.language?.score||0;
+      d.ori   =Math.max(d.ori, ds.orientation?.score||0);
+    }else{
+      // Fallback from P_Control if domain scores not available
+      const pc=r.result.P_Control;
+      if(r.q.qnum===0) d.lang +=pc*5;
+      if(r.q.qnum===1) d.flu  +=pc*7;
+      if(r.q.qnum===2) d.att  +=pc*5;
+      if(r.q.qnum===4) d.mem  +=pc*8;
+    }
+  });
+  d.mem =Math.min(d.mem,8); d.flu=Math.min(d.flu,7);
+  d.att =Math.min(d.att,5); d.lang=Math.min(d.lang,5); d.ori=Math.min(d.ori,5);
+  d.total=d.mem+d.flu+d.att+d.lang+d.ori;
+  return d;
+}
+
+function genInterp(ds,avgPD){
+  const r=[];
+  if(ds.mem<4)      r.push({icon:"✗",dom:T("Memory","स्मृति"),txt:T("Impaired — poor delayed recall. Strongest Alzheimer's indicator.","कमजोर याद — अल्जाइमर का सबसे मजबूत संकेत।")});
+  else if(ds.mem<6) r.push({icon:"⚠",dom:T("Memory","स्मृति"),txt:T("Mildly reduced recall.","हल्की स्मृति कमी।")});
+  else              r.push({icon:"✓",dom:T("Memory","स्मृति"),txt:T("Normal.","सामान्य।")});
+  if(ds.flu<4)      r.push({icon:"✗",dom:T("Verbal fluency","प्रवाह"),txt:T("Low animal naming — frontal lobe concern.","जानवर कम बोले — अग्र मस्तिष्क संकेत।")});
+  else if(ds.flu<6) r.push({icon:"⚠",dom:T("Verbal fluency","प्रवाह"),txt:T("Mildly reduced.","हल्की कमी।")});
+  else              r.push({icon:"✓",dom:T("Verbal fluency","प्रवाह"),txt:T("Normal.","सामान्य।")});
+  if(ds.att<3)      r.push({icon:"✗",dom:T("Attention","ध्यान"),txt:T("Impaired — possible vascular or delirium component.","ध्यान कमजोर।")});
+  else              r.push({icon:"✓",dom:T("Attention","ध्यान"),txt:T("Adequate.","पर्याप्त।")});
+  if(ds.lang<3)     r.push({icon:"⚠",dom:T("Language","भाषा"),txt:T("Reduced coherence in picture description.","चित्र वर्णन में कमजोरी।")});
+  else              r.push({icon:"✓",dom:T("Language","भाषा"),txt:T("Normal coherence.","सामान्य।")});
+  if(avgPD>0.6)     r.push({icon:"⚠",dom:T("Overall AI risk","कुल AI जोखिम"),txt:T("Elevated. Recommend formal MoCA + neurological review.","औपचारिक MoCA + न्यूरोलॉजी रेफरल की सिफारिश।")});
+  return r;
+}
+
+function avgTmp(valid){
+  let ls=0,ds=0,ws=0,n=0;
+  valid.forEach(r=>{
+    const t=r.result.temporal;
+    if(t&&typeof t.response_latency_s!=="undefined"){
+      ls+=t.response_latency_s||0;
+      ds+=t.disfluency_per_100w||0;
+      ws+=t.speech_rate_wpm||80;
+    }else{ls+=1.5;ds+=3;ws+=80;}
+    n++;
+  });
+  return{lat:ls/Math.max(n,1),dis:ds/Math.max(n,1),wpm:ws/Math.max(n,1)};
+}
+
+function newS(){show("s_pt");updS(0);}
+window.onload=()=>{
+  setTimeout(chk,700);
+  ["wf0","wf1","wf2","wf3"].forEach(initWf);
+};
+</script>
+</body>
+</html>

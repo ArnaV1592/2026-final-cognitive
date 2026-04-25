@@ -1,0 +1,25 @@
+fastapi>=0.110.0
+uvicorn[standard]>=0.29.0
+python-multipart>=0.0.9
+
+# ASR
+openai-whisper>=20231117
+httpx>=0.27.0          # Pulse API client
+
+# Backbone models
+transformers>=4.41.0
+torch>=2.2.0
+torchaudio>=2.2.0
+
+# Audio
+librosa>=0.10.1
+soundfile>=0.12.1
+ffmpeg-python>=0.2.0   # requires ffmpeg binary: apt-get install -y ffmpeg
+
+# ML utilities
+scikit-learn>=1.4.0
+numpy>=1.26.0
+pandas>=2.2.0
+
+# Optional — sentence embeddings for semantic coherence feature
+# sentence-transformers>=3.0.0

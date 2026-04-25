@@ -1,0 +1,157 @@
+{
+  "n_classes": 2,
+  "n_folds": 5,
+  "derived_dim": 28,
+  "label_map": {
+    "0": "Control",
+    "1": "Dementia"
+  },
+  "folds": [
+    {
+      "fold": 1,
+      "auc": 0.9961,
+      "f1": 0.9851,
+      "acc": 0.9875,
+      "cm": [
+        [
+          47,
+          1
+        ],
+        [
+          1,
+          111
+        ]
+      ],
+      "per_class": {
+        "0": {
+          "sensitivity": 0.9792,
+          "specificity": 0.9911
+        },
+        "1": {
+          "sensitivity": 0.9911,
+          "specificity": 0.9792
+        }
+      }
+    },
+    {
+      "fold": 2,
+      "auc": 1.0,
+      "f1": 0.9922,
+      "acc": 0.9938,
+      "cm": [
+        [
+          44,
+          0
+        ],
+        [
+          1,
+          115
+        ]
+      ],
+      "per_class": {
+        "0": {
+          "sensitivity": 1.0,
+          "specificity": 0.9914
+        },
+        "1": {
+          "sensitivity": 0.9914,
+          "specificity": 1.0
+        }
+      }
+    },
+    {
+      "fold": 3,
+      "auc": 0.9979,
+      "f1": 0.9923,
+      "acc": 0.9938,
+      "cm": [
+        [
+          45,
+          0
+        ],
+        [
+          1,
+          114
+        ]
+      ],
+      "per_class": {
+        "0": {
+          "sensitivity": 1.0,
+          "specificity": 0.9913
+        },
+        "1": {
+          "sensitivity": 0.9913,
+          "specificity": 1.0
+        }
+      }
+    },
+    {
+      "fold": 4,
+      "auc": 0.9906,
+      "f1": 0.9855,
+      "acc": 0.9875,
+      "cm": [
+        [
+          49,
+          0
+        ],
+        [
+          2,
+          109
+        ]
+      ],
+      "per_class": {
+        "0": {
+          "sensitivity": 1.0,
+          "specificity": 0.982
+        },
+        "1": {
+          "sensitivity": 0.982,
+          "specificity": 1.0
+        }
+      }
+    },
+    {
+      "fold": 5,
+      "auc": 0.9815,
+      "f1": 0.9594,
+      "acc": 0.9625,
+      "cm": [
+        [
+          55,
+          6
+        ],
+        [
+          0,
+          99
+        ]
+      ],
+      "per_class": {
+        "0": {
+          "sensitivity": 0.9016,
+          "specificity": 1.0
+        },
+        "1": {
+          "sensitivity": 1.0,
+          "specificity": 0.9016
+        }
+      }
+    }
+  ],
+  "aggregate": {
+    "auc": {
+      "mean": 0.9932,
+      "std": 0.0066
+    },
+    "f1": {
+      "mean": 0.9829,
+      "std": 0.0122
+    },
+    "acc": {
+      "mean": 0.985,
+      "std": 0.0116
+    }
+  },
+  "best_fold": 2,
+  "best_auc": 1.0
+}
