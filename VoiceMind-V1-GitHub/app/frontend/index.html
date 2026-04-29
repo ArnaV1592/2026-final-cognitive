@@ -640,15 +640,28 @@ async function tog(qi){
   else{await startR(qi);}
 }
 
+// Detect a MIME type the browser supports for BOTH recording AND playback
+const _MIME = (function(){
+  const cand = ["audio/webm;codecs=opus","audio/webm",
+                "audio/mp4;codecs=mp4a.40.2","audio/mp4","audio/ogg;codecs=opus"];
+  for (const m of cand) {
+    if (window.MediaRecorder && MediaRecorder.isTypeSupported(m)) return m;
+  }
+  return "";
+})();
+
 async function startR(qi){
   try{
     const st=await navigator.mediaDevices.getUserMedia({audio:true});
-    const ch=[]; mrec=new MediaRecorder(st,{mimeType:"audio/webm"});
+    const ch=[];
+    mrec = _MIME ? new MediaRecorder(st,{mimeType:_MIME}) : new MediaRecorder(st);
     mrec.ondataavailable=e=>{if(e.data.size>0)ch.push(e.data);};
     mrec.onstop=()=>{
-      blobs[qi]=new Blob(ch,{type:"audio/webm"});
-      document.getElementById(`au${qi}`).src=URL.createObjectURL(blobs[qi]);
-      const aEl=document.getElementById(`au${qi}`);
+      const useType = mrec.mimeType || _MIME || "audio/webm";
+      blobs[qi]=new Blob(ch,{type: useType});
+      const url = URL.createObjectURL(blobs[qi]);
+      const aEl = document.getElementById(`au${qi}`);
+      aEl.src = url;
       aEl.load();
       aEl.setAttribute("type","audio/webm");
       document.getElementById(`ap${qi}`).style.display="block";
@@ -702,10 +715,10 @@ function ret(qi){
   initWf("wf"+qi);
 }
 function restR(qi){
-  document.getElementById(`au${qi}`).src=URL.createObjectURL(blobs[qi]);
-      const aEl=document.getElementById(`au${qi}`);
-      aEl.load();
-      aEl.setAttribute("type","audio/webm");
+  const url = URL.createObjectURL(blobs[qi]);
+  const aEl = document.getElementById(`au${qi}`);
+  aEl.src = url;
+  aEl.load();
   document.getElementById(`ap${qi}`).style.display="block";
   document.getElementById(`nb${qi}`).disabled=false;
   document.getElementById(`rb${qi}`).className="rbtn done";
@@ -723,7 +736,9 @@ async function subAll(){
     try{
       if(!blobs[qi]) throw new Error("No recording for question "+(qi+1));
       const fd=new FormData();
-      fd.append("file", blobs[qi], `q${qi+1}_${pt.id}.webm`);
+      const _ext = (blobs[qi].type||"").includes("mp4") ? "mp4" :
+             (blobs[qi].type||"").includes("ogg") ? "ogg" : "webm";
+      fd.append("file", blobs[qi], `q${qi+1}_${pt.id}.${_ext}`);
       fd.append("patient_id",   pt.id);
       fd.append("question_num", String(qlist[qi].qnum));
       fd.append("clinician",    pt.clinician||"");
