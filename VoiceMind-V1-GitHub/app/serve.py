@@ -122,7 +122,7 @@ async def screen(
                                      "Make sure ffmpeg is installed: apt-get install -y ffmpeg")
 
         # Run inference (returns dict with prediction + transcript + segments)
-        result = _vm["p"].predict(tmp_wav)
+        result = _vm["p"].predict(tmp_wav, client_lang=language)
 
         if result.get("error"):
             raise HTTPException(422, result["error"])
