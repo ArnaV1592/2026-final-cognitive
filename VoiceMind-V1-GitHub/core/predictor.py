@@ -117,26 +117,50 @@ class VoiceMindPredictor:
             "cost_usd": 0.0,
         }
 
-    def _pulse_transcribe(self, audio_path: Path) -> dict:
-        """Smallest.ai Pulse transcription for Hindi / Hinglish."""
-        import httpx
-        with open(audio_path, "rb") as f:
+def _pulse_transcribe(self, audio_path: Path,
+                          client_lang: str = "hi-en") -> dict:
+        """
+        Smallest.ai Pulse transcription for Hindi / Hinglish.
+
+        Fixes:
+        1) Always send a 16kHz mono WAV (Pulse handles WAV most reliably).
+           If the path is webm/mp4/ogg, convert with ffmpeg first.
+        2) Language code: 'hi' for pure Hindi, 'hi-en' for code-mixed.
+        3) Log raw response when transcript is empty for debugging.
+        """
+        import httpx, subprocess, json as _json
+
+        # 1) Force a clean WAV — Pulse is most reliable with WAV input.
+        if audio_path.suffix.lower() != ".wav":
+            wav_path = audio_path.with_suffix(".pulse.wav")
+            cmd = ["ffmpeg", "-y", "-i", str(audio_path),
+                   "-ac", "1", "-ar", "16000", "-sample_fmt", "s16",
+                   str(wav_path)]
+            r = subprocess.run(cmd, capture_output=True, timeout=60)
+            if r.returncode != 0:
+                log.warning("ffmpeg WAV-for-Pulse failed: %s",
+                            r.stderr.decode(errors="replace")[:200])
+                wav_path = audio_path  # fall back to original
+        else:
+            wav_path = audio_path
+
+        # 2) Language code: 'hi' if clinician explicitly chose Hindi.
+        pulse_lang = "hi" if client_lang == "hi" else "hi-en"
+
+        with open(wav_path, "rb") as f:
             ab = f.read()
-        ext  = audio_path.suffix.lower().lstrip(".")
-        mime = {"wav": "audio/wav", "mp3": "audio/mpeg",
-                "m4a": "audio/mp4", "mp4": "audio/mp4",
-                "ogg": "audio/ogg"}.get(ext, "audio/wav")
 
         resp = httpx.post(
             "https://waves-api.smallest.ai/api/v1/pulse/get_text",
             headers={"Authorization": f"Bearer {self.pulse_key}"},
-            files={"file": (audio_path.name, ab, mime)},
-            data={"language": "hi-en", "word_timestamps": "true"},
+            files={"file": (wav_path.name, ab, "audio/wav")},
+            data={"language": pulse_lang, "word_timestamps": "true"},
             timeout=120.0,
         )
         resp.raise_for_status()
         pr = resp.json()
 
+        text = (pr.get("text") or "").strip()
         segs = [
             {"start": s.get("start", 0),
              "end":   s.get("end", 0),
@@ -144,10 +168,21 @@ class VoiceMindPredictor:
              "words": s.get("words", [])}
             for s in pr.get("segments", [])
         ]
+
+        # 3) Diagnostic: log raw response if transcript is empty.
+        if not text:
+            log.warning("Pulse returned EMPTY transcript (lang=%s, dur=%.1fs). "
+                        "Response keys: %s",
+                        pulse_lang,
+                        (segs[-1]["end"] if segs else 0.0),
+                        list(pr.keys()))
+            log.warning("Pulse raw payload: %s",
+                        _json.dumps(pr, ensure_ascii=False)[:500])
+
         dur = segs[-1]["end"] if segs else 0.0
         return {
-            "text":     (pr.get("text") or "").strip(),
-            "language": pr.get("language", "hi-en"),
+            "text":     text,
+            "language": pr.get("language", pulse_lang),
             "segments": segs,
             "provider": "pulse",
             "cost_usd": round((dur / 60.0) * 0.006, 5),
@@ -167,7 +202,7 @@ class VoiceMindPredictor:
         if hint in ("hi", "hi-en") and self._pulse_avail:
             try:
                 log.info("Routing to Pulse (clinician selected '%s')", hint)
-                return self._pulse_transcribe(audio_path)
+                return self._pulse_transcribe(audio_path, client_lang=hint)
             except Exception as e:
                 log.warning("Pulse failed (%s) — falling back to Whisper", e)
                 return self._whisper_transcribe(audio_path)
@@ -184,7 +219,7 @@ class VoiceMindPredictor:
             if is_indic:
                 try:
                     log.info("Whisper detected Indic — re-routing to Pulse")
-                    return self._pulse_transcribe(audio_path)
+                    return self._pulse_transcribe(audio_path, client_lang="hi-en")
                 except Exception as e:
                     log.warning("Pulse failed (%s) — using Whisper output", e)
 
